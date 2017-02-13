@@ -13,29 +13,29 @@ published: true
 comments: true
 ---
 
-In this blog post we will teach a car drive itself in autonomous mode. The overall methodology is called "Behavioral Cloning" in which a model learns from imitating human behavior. 
+In this blog post we will teach a car drive itself in autonomous mode. The overall methodology is called "Behavioral Cloning" in which a model learns from imitating human behavior.
 
 <!--more-->
 
 [//]: # (Image References)
 
-[image1]: /images/behavioral_cloning/random_image_set.png "A random image set with all three camera views"
-[image2]: /images/behavioral_cloning/drive_data.png "Recorded drive data"
-[image3]: /images/behavioral_cloning/steering_histogram.png "Steering angle histogram"
-[image4]: /images/behavioral_cloning/brightness_adjustment.png "Example image with brightness adjustment"
-[image5]: /images/behavioral_cloning/cropped_image.png "Example image after cropping"
-[image6]: /images/behavioral_cloning/resized_image.png "Example image after resizing"
-[image7]: /images/behavioral_cloning/flipped_image.png "Example image after flipping"
-[image8]: /images/behavioral_cloning/rotated_image.png "Example image after rotation"
-[image9]: /images/behavioral_cloning/translated_image.png "Example image after translation"
-[image10]: /images/behavioral_cloning/weighted_steering_histogram.png "Histogram of raw steering data with weights"
-[image11]: /images/behavioral_cloning/training_data_histogram.png "Histogram of the final training data"
-[image12]: /images/behavioral_cloning/CNN_model_arch.png "Convolutional Model Architecture"
+[image1]: /images/random_image_set.png "A random image set with all three camera views"
+[image2]: /images/drive_data.png "Recorded drive data"
+[image3]: /images/steering_histogram.png "Steering angle histogram"
+[image4]: /images/brightness_adjustment.png "Example image with brightness adjustment"
+[image5]: /images/cropped_image.png "Example image after cropping"
+[image6]: /images/resized_image.png "Example image after resizing"
+[image7]: /images/flipped_image.png "Example image after flipping"
+[image8]: /images/rotated_image.png "Example image after rotation"
+[image9]: /images/translated_image.png "Example image after translation"
+[image10]: /images/weighted_steering_histogram.png "Histogram of raw steering data with weights"
+[image11]: /images/training_data_histogram.png "Histogram of the final training data"
+[image12]: /images/CNN_model_arch.png "Convolutional Model Architecture"
 
 
 Here are the steps we will follow from high-level perspective:
 
-- Use the simulator that Udacity provides to record images and driving data 
+- Use the simulator that Udacity provides to record images and driving data
 - Prepare data and make it ready for a deep learning exercise
 - Build a Convolutional Neural Network (CNN) in Keras using TensorFlow backend and train it using the pre-processed data
 - Test the model in the simulator in autonomus mode
@@ -51,17 +51,17 @@ Files associated with this post are located in this **[REPO](https://github.com/
 
 ### Training data
 
-This section will go through the steps in more detail. 
+This section will go through the steps in more detail.
 
 ---
 
 
 #### Getting data
 
-There are two options to get training data: 
+There are two options to get training data:
 
-+   Use the sample data provided 
-+   Drive the car around the track and record images 
++   Use the sample data provided
++   Drive the car around the track and record images
 
 I employed both methodologies but found that my model worked much better with the data I recorded in which I drove around the track multiple times and tried to stay on the road at all times. The functions used for getting the data into `model.py` are in `FLib.py`.
 
@@ -75,19 +75,19 @@ I employed both methodologies but found that my model worked much better with th
 | extract_data           | Function to extract `.zip` files                                    |
 |                        |                                                                     |
 
-Techniques that can help with getting a good solution would require feeding as many data points as possible with all the possible combinations of things such as recovering the car from road sides. Due to limited time I only recorded data with regular driving and used a few data augmentation techniques to improve the data set. 
+Techniques that can help with getting a good solution would require feeding as many data points as possible with all the possible combinations of things such as recovering the car from road sides. Due to limited time I only recorded data with regular driving and used a few data augmentation techniques to improve the data set.
 
-There are two tracks in the simulator. I used the first track to record training data in the beta simulator. One of the characteristics of this track is that it is mostly straight driving with occasional left turn, by default driving is counter clock wise (CCW). 
+There are two tracks in the simulator. I used the first track to record training data in the beta simulator. One of the characteristics of this track is that it is mostly straight driving with occasional left turn, by default driving is counter clock wise (CCW).
 
-The simulator saves images and a driving log in a folder that you specify at the beginning of the recording. What I found out is that if you have any problems during autonomous driving and want to get more data with new recordings, the simulator stores new images to the same folder and appends the new drive log at the end of the existing drive log. 
+The simulator saves images and a driving log in a folder that you specify at the beginning of the recording. What I found out is that if you have any problems during autonomous driving and want to get more data with new recordings, the simulator stores new images to the same folder and appends the new drive log at the end of the existing drive log.
 
 #### Exploring Data
 
-The beta simulator (MACOS version) records images at a rate of 13hz. There are 3 sets of images: left camera image, center camera image and right camera image. In addition to the images, we have access to the steering angle, throttle, brake and speed information. All these information are recorded in the drive log in CSV file format. Each row in the drive log represents instantaneous data. The first three columns are the paths for each image. Image file name specifies which camera it belongs to and the timestamp. Images have 3 channels (BGR) and they are 160px in height and 320px in width. 
+The beta simulator (MACOS version) records images at a rate of 13hz. There are 3 sets of images: left camera image, center camera image and right camera image. In addition to the images, we have access to the steering angle, throttle, brake and speed information. All these information are recorded in the drive log in CSV file format. Each row in the drive log represents instantaneous data. The first three columns are the paths for each image. Image file name specifies which camera it belongs to and the timestamp. Images have 3 channels (BGR) and they are 160px in height and 320px in width.
 
 ```python
 Length of data: 12872
-Data Headers:  ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed'] 
+Data Headers:  ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
 Shape of each image:  (160, 320, 3)
 ```
 
@@ -99,9 +99,9 @@ It is also a good idea to visualize other driving data to understand what we are
 
 ![Drive Data][image2]
 
-Among all these 4 different data tags we are interested in the steering angle as it is going to be the parameter we will predict in this project. Throttle can also be important but we'll set it to some reasonable value during autonomous driving. 
+Among all these 4 different data tags we are interested in the steering angle as it is going to be the parameter we will predict in this project. Throttle can also be important but we'll set it to some reasonable value during autonomous driving.
 
-It looks like steering angle changes from -1 to +1 in the drive log. In the simulator steering angle is displayed at the upper left corner of the screen and it chanegs from -25 to +25 degrees so we now know that this data has already been normalized with the max possible value. Another intresting observation is that the steering data is usually small and negative. This is information is not surprising as the track is CCW and it only requires small adjustments in steering angle most of the time. This information is very critical in model training as we can guess that if we only use this data our predictions will be bias toward small negative numbers. Now let's look at how steering angle data is distributed using a histogram plot which further emphasizes this point. 
+It looks like steering angle changes from -1 to +1 in the drive log. In the simulator steering angle is displayed at the upper left corner of the screen and it chanegs from -25 to +25 degrees so we now know that this data has already been normalized with the max possible value. Another intresting observation is that the steering data is usually small and negative. This is information is not surprising as the track is CCW and it only requires small adjustments in steering angle most of the time. This information is very critical in model training as we can guess that if we only use this data our predictions will be bias toward small negative numbers. Now let's look at how steering angle data is distributed using a histogram plot which further emphasizes this point.
 
 ![Steering angle histogram][image3]
 
@@ -119,7 +119,7 @@ This table shows the functions I used in this part:
 
 #### Pre-processing data
 
-After exploring the data and being unsuccessful in a few autonomous driving trials, I created a few functions that helped my model worked better and faster. I did a lot of trial-error runs and finally used only a few of them. 
+After exploring the data and being unsuccessful in a few autonomous driving trials, I created a few functions that helped my model worked better and faster. I did a lot of trial-error runs and finally used only a few of them.
 
 * Normalizing images
 
@@ -138,7 +138,7 @@ def normalize_scales(img):
 
 * Adjusting brightness
 
-Adjusting the brightness of the images is a pre-processing step that we can use to generate extra images that would simulate brighter or darker cases. This process hopefully makes our model more robust. `HSV` color space provides the "Value" channel which is the brigtness therefore I prefered to multiply the V value with a random number between -0.5 to 1.15. The upper range is not 1.5 as the images are already bright enough and it is best to use the function to get darker images. 
+Adjusting the brightness of the images is a pre-processing step that we can use to generate extra images that would simulate brighter or darker cases. This process hopefully makes our model more robust. `HSV` color space provides the "Value" channel which is the brigtness therefore I prefered to multiply the V value with a random number between -0.5 to 1.15. The upper range is not 1.5 as the images are already bright enough and it is best to use the function to get darker images.
 
 ```python
 def adjust_brightness(img, bright_limit=(-0.5, 0.15)):
@@ -164,7 +164,7 @@ A side by side comparison of a randomly selected image before and after brightne
 
 * Cropping
 
-To reduce image size and speed up the training, we can crop the images from top (sky) and bottom (car). I prefered to crop 40px from top and 25px from bottom. 
+To reduce image size and speed up the training, we can crop the images from top (sky) and bottom (car). I prefered to crop 40px from top and 25px from bottom.
 
 ```python
 def crop_image(img, cut_info=(40, 25, 0, 0)):
@@ -192,7 +192,7 @@ A side by side comparison of a randomly selected image before and after cropping
 
 * Resize Images
 
-This process may not be necessary but I decided to apply it anyway. 
+This process may not be necessary but I decided to apply it anyway.
 
 ```python
 def resize_image(img, new_dim=(64, 64)):
@@ -215,7 +215,7 @@ A side by side comparison of a randomly selected image before and after resizing
 
 * Flipping Images
 
-This pre-processing technique is very useful in this study. We already talked about the bias in the steering angles. We can flip images first to increase our data size and then to generate positive steering angle images. This process will balance the data set with respect to 0 angle.  
+This pre-processing technique is very useful in this study. We already talked about the bias in the steering angles. We can flip images first to increase our data size and then to generate positive steering angle images. This process will balance the data set with respect to 0 angle.
 
 ```python
 def flip_image(img, steering_angle):
@@ -241,7 +241,7 @@ A side by side comparison of a randomly selected image before and after flipping
 
 I also created a script for rotating the images at a given position measured from the center of the image. Although I tried to use a few time, I couldn't get improvement in the results. I can't really say that this is not needed as there are many hyperparameters that might be impacting the results. I haven't fully followed a good design of experiments (DEO) study here so I'll figure if rotated images could help with training at a later time.
 
-In a nutshell this function pick a random rotation angle and rotates the images and updates the steering angle in the same direction as the rotation. More information can be found in the code snippet below. 
+In a nutshell this function pick a random rotation angle and rotates the images and updates the steering angle in the same direction as the rotation. More information can be found in the code snippet below.
 
 ```python
 def rotate_image(img, steering_angle, rot_info=(10.0, 0.0)):
@@ -298,7 +298,7 @@ A side by side comparison of a randomly selected image before and after rotating
 
 * Translating Images
 
-This function translates the images in x and y directions. Like rotation, I didn't observe improvement in the model when this function is used. I'll investigate further at a later time. 
+This function translates the images in x and y directions. Like rotation, I didn't observe improvement in the model when this function is used. I'll investigate further at a later time.
 
 ```python
 def translate_image(img, steering_angle, trans_info=(40, 5)):
@@ -325,9 +325,9 @@ A side by side comparison of a randomly selected image before and after translat
 
 ![Translated Image][image9]
 
-* Using left and right camera images 
+* Using left and right camera images
 
-We can use left and right camera images to simulate the recorvery of the car from sides. Using left and right images also helps us to increase our training data. When a left camera image is used we can assume that a steering angle needs to be increase by +0.25 (6.25deg) to bring the car to the cente line. We subtract 0.25 from the steering angle for the right camera images to simulate steering left to recover the car from the right of the centerline. These angle adjustemnts are found by trial and method and trough discussion.  
+We can use left and right camera images to simulate the recorvery of the car from sides. Using left and right images also helps us to increase our training data. When a left camera image is used we can assume that a steering angle needs to be increase by +0.25 (6.25deg) to bring the car to the cente line. We subtract 0.25 from the steering angle for the right camera images to simulate steering left to recover the car from the right of the centerline. These angle adjustemnts are found by trial and method and trough discussion.
 
 ```python
 if camera_position == 'left':
@@ -340,9 +340,9 @@ else:
     pass
 ```
 
-* Increasing the probability of high steering angle images 
+* Increasing the probability of high steering angle images
 
-The histogram of the recorded steering angle data shows that there is a peak around 0 degrees. When all these images are used without adjustment there is a risk that our model would predict steering angles that are close to 0. To prevent that we can assign higher weights to high steering angles. The methodoly I followed here is very simple and can be improved. I used the normalized steering angles as the weights in random image selection code. The absolute value of the steering angle plus a small adder divided by the sum of all steering angles was used as the probability of that image. Images with higher steering angles would have higher wwights using this method. I added a small value to each steering angle as 0 steering angle would yield 0 weight which would prevent us from selecting 0 steering angle images.  
+The histogram of the recorded steering angle data shows that there is a peak around 0 degrees. When all these images are used without adjustment there is a risk that our model would predict steering angles that are close to 0. To prevent that we can assign higher weights to high steering angles. The methodoly I followed here is very simple and can be improved. I used the normalized steering angles as the weights in random image selection code. The absolute value of the steering angle plus a small adder divided by the sum of all steering angles was used as the probability of that image. Images with higher steering angles would have higher wwights using this method. I added a small value to each steering angle as 0 steering angle would yield 0 weight which would prevent us from selecting 0 steering angle images.
 
 ```python
 def get_weights(img_list):
@@ -366,7 +366,7 @@ def get_weights(img_list):
     return tuple(wghts)
 ```
 
-When weights are assigned, histogram of the steering angle improves as shown in the plot below. 
+When weights are assigned, histogram of the steering angle improves as shown in the plot below.
 
 ![Histogram of steering data with weights][image10]
 
@@ -374,7 +374,7 @@ The final data submitted to the model for training looks like this:
 
 ![Histogram of final training data][image11]
 
-There are three peaks in the histogram: -0.25, 0, +0.25. Two new peaks at -0.25 and 0.25 are due to using left and right images and correcting 0 degree images with 0.25 in the `Using left and right camera images` section above. 
+There are three peaks in the histogram: -0.25, 0, +0.25. Two new peaks at -0.25 and 0.25 are due to using left and right images and correcting 0 degree images with 0.25 in the `Using left and right camera images` section above.
 
 
 
@@ -429,17 +429,17 @@ def mynet(img_shape):
 
 This model is based on NVIDIA's model published in **[End to End Learning for Self-Driving Cars](http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf)**
 
-I used  `TensorFlow` with `Keras` high level library which is easier to read and prototype with. My model consists of 5 layers of convolution neural networks with 5x5 and 3x3 filter sizes, depths between 24 and 64, and 2x2 and 1x1 subsampling. The model includes RELU layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer. I later prefered to use Lambda layer rather than using my own function as normalization done during training would be parallel. Convolutional layers are followed by a flatten layer and 4 fully connected layers. Output layer size is 1. The model contains dropout layers in order to reduce overfitting. Dropouts layers are used at the end of last 2 convolutional layers and first fully connected layers as those layers are bigger in size and dropout will be more effective. 
+I used  `TensorFlow` with `Keras` high level library which is easier to read and prototype with. My model consists of 5 layers of convolution neural networks with 5x5 and 3x3 filter sizes, depths between 24 and 64, and 2x2 and 1x1 subsampling. The model includes RELU layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer. I later prefered to use Lambda layer rather than using my own function as normalization done during training would be parallel. Convolutional layers are followed by a flatten layer and 4 fully connected layers. Output layer size is 1. The model contains dropout layers in order to reduce overfitting. Dropouts layers are used at the end of last 2 convolutional layers and first fully connected layers as those layers are bigger in size and dropout will be more effective.
 
 Here is a visualization of the architecture:
 
 ![Model Architecture][image12]
 
-This model uses `Adam` optimizer so that learning rate is tuned automatically during the optimization process. I started with a learning rate of `0.0001`. Since this is a regression problem it employs `Mean Squared Error - MSE` as the loss function. 
+This model uses `Adam` optimizer so that learning rate is tuned automatically during the optimization process. I started with a learning rate of `0.0001`. Since this is a regression problem it employs `Mean Squared Error - MSE` as the loss function.
 
-I used simpler models in my trials but then found that NVIDIA's model is a good starting point. The only problem was that although the model was generating good results with during training (low mse in validation set) it wasn't performing well during testing mode (using the simulator). This implied that the model was overfitting and adding the dropout layers solved the problem. 
+I used simpler models in my trials but then found that NVIDIA's model is a good starting point. The only problem was that although the model was generating good results with during training (low mse in validation set) it wasn't performing well during testing mode (using the simulator). This implied that the model was overfitting and adding the dropout layers solved the problem.
 
-I got a good performance in the track with this model so I didn't feel the need to get extra images or recovery data from the simulator. 
+I got a good performance in the track with this model so I didn't feel the need to get extra images or recovery data from the simulator.
 
 
 ### Some More Detail
@@ -448,9 +448,9 @@ I got a good performance in the track with this model so I didn't feel the need 
 
 #### Model Parameters
 
-I used 5 epoches with 256*80 batches. To save memory and perform parallel image processing, I used the `model.fit_generator` function in Keras. I feed 256 images in each call of the generator. Validation size was 1024. During training I randomly picked left right and center camera images with almost equal probabilities but during validation I only picked the **center image only** as simulator only uses center image. I also didn't use the brightness augmentation for validation images. 
+I used 5 epoches with 256*80 batches. To save memory and perform parallel image processing, I used the `model.fit_generator` function in Keras. I feed 256 images in each call of the generator. Validation size was 1024. During training I randomly picked left right and center camera images with almost equal probabilities but during validation I only picked the **center image only** as simulator only uses center image. I also didn't use the brightness augmentation for validation images.
 
-Input image size was set to (96, 64, 3). 
+Input image size was set to (96, 64, 3).
 
 ```python
 model_name = 'new_model_1'
@@ -481,7 +481,7 @@ valid_preprocess_spec = {
 
 #### Python Generator
 
-This is the generator function I used not to run out of memory during training and perform image processing in parallel fashion. 
+This is the generator function I used not to run out of memory during training and perform image processing in parallel fashion.
 
 ```python
 
@@ -542,7 +542,7 @@ def data_generator(case, param, img_list):
 
 #### Runnning and Saving the Model
 
-We can use `ModelCheckpoint` and `EarlyStopping` function provided in `Keras` to store model checkpoints and terminate the run based on `validation loss`. These features were helpful during my trial-errors runs. 
+We can use `ModelCheckpoint` and `EarlyStopping` function provided in `Keras` to store model checkpoints and terminate the run based on `validation loss`. These features were helpful during my trial-errors runs.
 
 ```python
 model = FLib.mynet(img_size)
@@ -572,7 +572,7 @@ model.save(model_h5)
 
 #### Changes in Drive.py
 
-Since we pre-processed the images `drive.py` needs to be updated with necessary processing changes. Among the pre-processing steps that were highlighted above only `resizing` and `cropping` will be necessary in the testing phase. 
+Since we pre-processed the images `drive.py` needs to be updated with necessary processing changes. Among the pre-processing steps that were highlighted above only `resizing` and `cropping` will be necessary in the testing phase.
 
 List of changes
 
@@ -582,7 +582,7 @@ List of changes
 
 #### How to run autonomously
 
-Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
+Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing
 
 ```sh
 python drive.py new_model_1.h5
